@@ -8,7 +8,7 @@
   "project_summary": {
     "name": "Flexio",
     "concept": "主要なAdobeアプリ（Ae / Pr / Ai / Ps）のJSX/JSXbinスクリプトランチャーを一つのパネルに統合する。KbarやJSX Launcherに相当するものを全Adobeアプリで共通して使えるようにするのが目的。",
-    "license": "GNU General Public License v3"
+    "license": "Apache License 2.0"
   },
 
   "technical_decisions": {
