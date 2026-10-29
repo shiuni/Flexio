@@ -38,17 +38,6 @@
   object-fit: contain;
 }
 
-.textIcon {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  line-height: 1.2;
-  font-weight: 700;
-  color: var(--text);
-  letter-spacing: 0.02em;
-  font-family: 'Adobe Clean', ui-sans-serif, system-ui, monospace;
-}
-
 /* ── List buttons (icon+name and name-only) ─────────────────────────────── */
 .listBtn {
   display: flex;

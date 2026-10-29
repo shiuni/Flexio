@@ -20,7 +20,7 @@ import {
   updateIconFile,
   deleteScriptDir,
   duplicateScriptDir,
-  buildAutoIconText,
+  resolveIconText,
 } from '../lib/scriptManager'
 import { dispatchBlueprintsChanged, onBlueprintsChanged } from '../lib/cepInterface'
 import type {
@@ -52,6 +52,7 @@ interface BlueprintsContextValue {
     iconSrcPath: string | null,
     name: string,
     description: string,
+    iconLabel?: string,
   ) => void
   updateButton: (
     app: AppName,
@@ -60,6 +61,7 @@ interface BlueprintsContextValue {
     fields: {
       name?: string
       description?: string
+      iconLabel?: string
       scriptSrcPath?: string
       iconSrcPath?: string | null
       clearIcon?: boolean
@@ -201,6 +203,7 @@ export function BlueprintsProvider({ children }: { children: React.ReactNode }) 
       iconSrcPath: string | null,
       name: string,
       description: string,
+      iconLabel = '',
     ) => {
       const buttonId = uuidv4()
       const { scriptPath, scriptName } = saveScriptFile(app, scriptSrcPath, buttonId)
@@ -209,7 +212,7 @@ export function BlueprintsProvider({ children }: { children: React.ReactNode }) 
         const saved = saveIconFile(app, buttonId, iconSrcPath)
         iconPath = saved.iconPath
       }
-      const autoText = buildAutoIconText(name || scriptName)
+      const autoText = resolveIconText(name || scriptName, iconLabel)
       const button: ButtonDef = {
         id: buttonId,
         name: name || scriptName,
@@ -218,6 +221,7 @@ export function BlueprintsProvider({ children }: { children: React.ReactNode }) 
         iconPath,
         iconType: iconPath ? 'image' : 'text',
         autoIconText: autoText,
+        iconLabel: iconLabel.trim() || undefined,
         order: 0,
       }
       update((bp) => {
@@ -240,6 +244,7 @@ export function BlueprintsProvider({ children }: { children: React.ReactNode }) 
       fields: {
         name?: string
         description?: string
+        iconLabel?: string
         scriptSrcPath?: string
         iconSrcPath?: string | null
         clearIcon?: boolean
@@ -264,9 +269,12 @@ export function BlueprintsProvider({ children }: { children: React.ReactNode }) 
               iconType = 'image'
             }
             const newName = fields.name ?? btn.name
-            autoIconText = buildAutoIconText(newName)
+            const iconLabel = (fields.iconLabel ?? btn.iconLabel ?? '').trim()
+            autoIconText = resolveIconText(newName, iconLabel)
             return {
               ...btn,
+              // undefined drops the key when the blueprints are saved
+              iconLabel: iconLabel || undefined,
               name: newName,
               description: fields.description ?? btn.description,
               scriptPath,
@@ -329,7 +337,7 @@ export function BlueprintsProvider({ children }: { children: React.ReactNode }) 
             name:        newName,
             scriptPath:  newScriptPath,
             iconPath:    newIconPath,
-            autoIconText: buildAutoIconText(newName),
+            autoIconText: resolveIconText(newName, original.iconLabel),
             order:       ts.buttons.length,
           }
           return { ...ts, buttons: [...ts.buttons, copy] }
