@@ -34,8 +34,10 @@ export interface ButtonDef {
   /** Relative to Flexio data root, e.g. "Scripts/AfterEffects/<buttonId>/icon/icon.png" */
   iconPath: string
   iconType: IconType
-  /** Up to 6 chars displayed when iconType === 'text' */
+  /** Text displayed when iconType === 'text': iconLabel if set, else derived from name */
   autoIconText: string
+  /** User-chosen icon text (up to 3 lines / 15 chars). Absent or empty = derive from name */
+  iconLabel?: string
   order: number
   /** Kept in the toolset but not rendered in the panel. Absent means visible. */
   hidden?: boolean

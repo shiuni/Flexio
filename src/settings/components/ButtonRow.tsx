@@ -2,7 +2,8 @@ import React, { useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useBlueprints } from '@/shared/context/BlueprintsContext'
 import { ButtonEditForm } from './ButtonEditForm'
-import { getIconRows, nameToHsl, iconPathToUrl } from '@/shared/lib/iconGenerator'
+import { nameToHsl, iconPathToUrl } from '@/shared/lib/iconGenerator'
+import { TextIcon } from '@/shared/components/TextIcon'
 import type { AppName, ButtonDef } from '@/shared/types'
 import styles from './ButtonRow.module.css'
 import editIcon from '@/shared/assets/svg/edit.svg'
@@ -26,7 +27,6 @@ export function ButtonRow({ app, toolsetId, button, dragging, dragHandleProps }:
   const [expanded, setExpanded] = useState(false)
   const [editing, setEditing] = useState(false)
 
-  const [row1, row2] = getIconRows(button.autoIconText)
   const iconUrl = button.iconType === 'image' ? iconPathToUrl(button.iconPath) : ''
   const bgColor = nameToHsl(button.name)
   const isHidden = button.hidden === true
@@ -61,9 +61,7 @@ export function ButtonRow({ app, toolsetId, button, dragging, dragHandleProps }:
           {button.iconType === 'image' && iconUrl ? (
             <img src={iconUrl} alt="" className={styles.miniImg} />
           ) : (
-            <span className={styles.miniText}>
-              {row1}{row2 ? `\n${row2}` : ''}
-            </span>
+            <TextIcon text={button.autoIconText} box={22} />
           )}
         </div>
         <span className={styles.name}>{button.name}</span>

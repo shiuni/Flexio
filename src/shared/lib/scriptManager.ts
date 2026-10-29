@@ -175,3 +175,8 @@ export function buildAutoIconText(name: string): string {
   }
   return name.trim().slice(0, 6).toUpperCase()
 }
+
+/** Icon text to display: the custom icon label wins, the name is the fallback */
+export function resolveIconText(name: string, iconLabel?: string): string {
+  return iconLabel?.trim() ? iconLabel.trim() : buildAutoIconText(name)
+}

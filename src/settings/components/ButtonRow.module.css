@@ -61,16 +61,6 @@
   object-fit: contain;
 }
 
-.miniText {
-  font-size: 6px;
-  font-weight: 700;
-  color: var(--text);
-  white-space: pre;
-  line-height: 1.2;
-  text-align: center;
-  letter-spacing: 0.02em;
-}
-
 .name {
   flex: 1;
   font-size: 11px;
