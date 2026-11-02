@@ -1,9 +1,11 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useBlueprints } from '@/shared/context/BlueprintsContext'
 import { APP_NAMES, APP_DISPLAY_NAMES, PANEL_SLOTS } from '@/shared/types'
 import type { AppName, IconShape, PanelSlot, UIMode } from '@/shared/types'
 import { getHostApp, isCEP } from '@/shared/lib/cepInterface'
+import { useT } from '@/shared/i18n/LanguageContext'
+import type { TextKey } from '@/shared/i18n/strings'
 import styles from './AllocationTab.module.css'
 import iconOnlySvg     from '@/shared/assets/svg/mode_icon.svg'
 import iconNameSvg     from '@/shared/assets/svg/mode_icon_name.svg'
@@ -32,25 +34,18 @@ const PANEL_LABELS: Record<PanelSlot, string> = {
   panel4: 'Flexio 4',
 }
 
-const COLUMN_OPTIONS = [
-  { value: 0, label: 'AUTO' },
-  { value: 1, label: '1' },
-  { value: 2, label: '2' },
-  { value: 3, label: '3' },
-  { value: 4, label: '4' },
-  { value: 5, label: '5' },
-  { value: 6, label: '6' },
+/** 0 = AUTO */
+const COLUMN_OPTIONS = [0, 1, 2, 3, 4, 5, 6]
+
+const UI_MODES: { mode: UIMode; icon: string; label: TextKey }[] = [
+  { mode: 'icon',      icon: iconOnlySvg,  label: 'modeIcon' },
+  { mode: 'icon+name', icon: iconNameSvg,  label: 'modeIconName' },
+  { mode: 'name',      icon: nameOnlySvg,  label: 'modeName' },
 ]
 
-const UI_MODES: { mode: UIMode; icon: string; label: string }[] = [
-  { mode: 'icon',      icon: iconOnlySvg,  label: 'Icon' },
-  { mode: 'icon+name', icon: iconNameSvg,  label: 'Icon + Name' },
-  { mode: 'name',      icon: nameOnlySvg,  label: 'Name' },
-]
-
-const ICON_SHAPES: { shape: IconShape; icon: string; label: string }[] = [
-  { shape: 'crisp',   icon: shapeCrispSvg,   label: 'Crisp' },
-  { shape: 'rounded', icon: shapeRoundedSvg, label: 'Rounded' },
+const ICON_SHAPES: { shape: IconShape; icon: string; label: TextKey }[] = [
+  { shape: 'crisp',   icon: shapeCrispSvg,   label: 'shapeCrisp' },
+  { shape: 'rounded', icon: shapeRoundedSvg, label: 'shapeRounded' },
 ]
 
 interface Props {
@@ -59,6 +54,7 @@ interface Props {
 
 export function AllocationTab({ initialApp }: Props) {
   const { blueprints, updatePanelSettings, updateAllocation } = useBlueprints()
+  const t = useT()
   const [activeApp,   setActiveApp]   = useState<AppName>(initialApp ?? getInitialApp())
   const [expanded,    setExpanded]    = useState<Record<PanelSlot, boolean>>({
     panel1: false, panel2: false, panel3: false, panel4: false,
@@ -111,8 +107,8 @@ export function AllocationTab({ initialApp }: Props) {
                         className={`${styles.modeBtn} ${ps.uiMode === mode ? styles.modeBtnActive : ''}`}
                         onClick={() => updatePanelSettings(activeApp, slot, { uiMode: mode })}
                       >
-                        <img src={icon} alt={label} width={16} height={16} className={styles.modeIcon} />
-                        <span>{label}</span>
+                        <img src={icon} alt="" width={16} height={16} className={styles.modeIcon} />
+                        <span>{t[label]}</span>
                       </button>
                     ))}
                   </div>
@@ -134,8 +130,8 @@ export function AllocationTab({ initialApp }: Props) {
                               className={`${styles.modeBtn} ${ps.iconShape === shape ? styles.modeBtnActive : ''}`}
                               onClick={() => updatePanelSettings(activeApp, slot, { iconShape: shape })}
                             >
-                              <img src={icon} alt={label} width={16} height={16} className={styles.modeIcon} />
-                              <span>{label}</span>
+                              <img src={icon} alt="" width={16} height={16} className={styles.modeIcon} />
+                              <span>{t[label]}</span>
                             </button>
                           ))}
                         </div>
@@ -146,14 +142,14 @@ export function AllocationTab({ initialApp }: Props) {
 
                 {/* Toolset + Columns */}
                 <div className={styles.fieldRow}>
-                  <label className={styles.fieldLabel}>Toolset</label>
+                  <label className={styles.fieldLabel}>{t.toolset}</label>
                   <div className={styles.toolsetRow}>
                     <select
                       value={blueprints.allocation[activeApp][slot]}
                       onChange={(e) => updateAllocation(activeApp, { [slot]: e.target.value })}
                       className={styles.toolsetSelect}
                     >
-                      <option value="">— Unassigned —</option>
+                      <option value="">{t.unassignedOption}</option>
                       {toolsets.map((ts) => (
                         <option key={ts.id} value={ts.id}>{ts.name}</option>
                       ))}
@@ -163,10 +159,10 @@ export function AllocationTab({ initialApp }: Props) {
                       onChange={(e) => updatePanelSettings(activeApp, slot, { columns: Number(e.target.value) })}
                       className={styles.colSelect}
                       disabled={ps.uiMode !== 'icon'}
-                      title={ps.uiMode !== 'icon' ? 'Column count only applies in Icon mode' : undefined}
+                      title={ps.uiMode !== 'icon' ? t.columnsIconOnly : undefined}
                     >
-                      {COLUMN_OPTIONS.map((o) => (
-                        <option key={o.value} value={o.value}>{o.label}</option>
+                      {COLUMN_OPTIONS.map((n) => (
+                        <option key={n} value={n}>{n === 0 ? t.columnsAuto : n}</option>
                       ))}
                     </select>
                   </div>
@@ -175,7 +171,7 @@ export function AllocationTab({ initialApp }: Props) {
                 {/* Scale */}
                 <div className={styles.sliderGroup}>
                   <div className={styles.sliderHeader}>
-                    <span className={styles.sliderLabel}>Scale</span>
+                    <span className={styles.sliderLabel}>{t.scale}</span>
                     <span className={styles.sliderValue}>{ps.scale}px</span>
                   </div>
                   <input
@@ -190,7 +186,7 @@ export function AllocationTab({ initialApp }: Props) {
                 {/* Spacing */}
                 <div className={styles.sliderGroup}>
                   <div className={styles.sliderHeader}>
-                    <span className={styles.sliderLabel}>Spacing</span>
+                    <span className={styles.sliderLabel}>{t.spacing}</span>
                     <span className={styles.sliderValue}>{ps.spacing}px</span>
                   </div>
                   <input
@@ -204,7 +200,7 @@ export function AllocationTab({ initialApp }: Props) {
 
                 {/* Flip to Reorder */}
                 <div className={styles.toggleRow}>
-                  <span className={styles.toggleLabel}>Flip to Reorder</span>
+                  <span className={styles.toggleLabel}>{t.flipToReorder}</span>
                   <button
                     className={`${styles.toggleBtn} ${ps.flipToReorder ? styles.toggleOn : ''}`}
                     onClick={() => updatePanelSettings(activeApp, slot, { flipToReorder: !ps.flipToReorder })}

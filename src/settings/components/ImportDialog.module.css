@@ -1,0 +1,227 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  backdrop-filter: blur(2px);
+}
+
+.dialog {
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  width: min(520px, calc(100vw - 32px));
+  max-height: calc(100vh - 32px);
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.6);
+}
+
+.head {
+  padding: 18px 20px 10px;
+}
+
+.title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+
+.subtitle {
+  font-size: 11px;
+  color: var(--text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0 20px;
+}
+
+.section {
+  padding: 10px 0 14px;
+  border-top: 1px solid var(--border);
+}
+
+.appName {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 8px;
+}
+
+.groupHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 12px;
+}
+
+.groupLabel {
+  display: block;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 6px;
+}
+
+.groupHeader .groupLabel {
+  margin-bottom: 0;
+}
+
+.linkBtn {
+  font-size: 10px;
+  color: var(--accent);
+  margin-bottom: 0;
+}
+
+.linkBtn:hover {
+  color: var(--accent-hover);
+}
+
+.rows {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 6px;
+}
+
+.groupLabel + .rows {
+  margin-top: 0;
+}
+
+/* ── Toolset rows ─────────────────────────────────────────────────────────── */
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 6px 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+}
+
+.rowText {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.rowName {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rowName.muted {
+  color: var(--text-muted);
+}
+
+.rowNote {
+  font-size: 10px;
+  color: var(--text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.segment {
+  display: flex;
+  flex-shrink: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+
+.segBtn {
+  padding: 3px 8px;
+  font-size: 10px;
+  color: var(--text-secondary);
+  transition: color var(--transition), background var(--transition);
+}
+
+.segBtn + .segBtn {
+  border-left: 1px solid var(--border);
+}
+
+.segBtn:hover {
+  color: var(--text);
+  background: var(--surface-hover);
+}
+
+.segBtn.segActive {
+  color: #fff;
+  background: var(--accent);
+}
+
+/* ── Panel rows ───────────────────────────────────────────────────────────── */
+.slotRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.slotLabel {
+  font-size: 11px;
+  color: var(--text-secondary);
+  width: 60px;
+  flex-shrink: 0;
+}
+
+.slotSelect {
+  flex: 1;
+  min-width: 0;
+  font-size: 11px;
+  padding: 3px 6px;
+}
+
+/* ── Footer ───────────────────────────────────────────────────────────────── */
+.footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+  padding: 12px 20px 16px;
+  border-top: 1px solid var(--border);
+}
+
+.cancelBtn {
+  padding: 4px 12px;
+  font-size: 11px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  transition: color var(--transition), background var(--transition);
+}
+
+.cancelBtn:hover {
+  color: var(--text);
+  background: var(--surface-hover);
+}
+
+.importBtn {
+  padding: 4px 14px;
+  font-size: 11px;
+  background: var(--accent);
+  border-radius: var(--radius-sm);
+  color: #fff;
+  font-weight: 600;
+  transition: background var(--transition);
+}
+
+.importBtn:hover {
+  background: var(--accent-hover);
+}

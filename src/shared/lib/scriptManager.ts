@@ -15,7 +15,6 @@ import {
   getScriptDirFromRelPath,
   toRelativePath,
   baseName,
-  fileExt,
 } from './paths'
 import type { AppName } from '../types'
 
@@ -53,40 +52,40 @@ export function saveIconFile(app: AppName, buttonId: string, srcPath: string): S
   return { iconPath: toRelativePath(destFile) }
 }
 
-// ─── Update an existing script (dir derived from stored path) ────────────────
+// ─── Update an existing script / icon (dir derived from stored path) ─────────
 
-export function updateScriptFile(existingScriptPath: string, newSrcPath: string): string {
-  const srcBase = npath.basename(newSrcPath)
-  const scriptDir = getScriptDirFromRelPath(existingScriptPath)
-  const codeDir = npath.join(scriptDir, 'code')
-  ensureDir(codeDir)
-  // Remove old script files
-  if (nfs.existsSync(codeDir)) {
-    for (const f of nfs.readdirSync(codeDir)) {
-      try { nfs.unlinkSync(npath.join(codeDir, f)) } catch { /* ok */ }
-    }
+/**
+ * Make a copy of `srcPath` the only file in `dir`. The copy is written under a
+ * temp name before anything is removed, so a failed copy leaves the current
+ * file in place — also when `srcPath` is that very file.
+ */
+function replaceFileInDir(dir: string, srcPath: string): string {
+  ensureDir(dir)
+  const destFile = npath.join(dir, npath.basename(srcPath))
+  const tmp = npath.join(dir, `.incoming-${Date.now()}`)
+  try {
+    nfs.copyFileSync(srcPath, tmp)
+  } catch (e) {
+    try { nfs.unlinkSync(tmp) } catch { /* ok */ }
+    throw e
   }
-  const destFile = npath.join(codeDir, srcBase)
-  nfs.copyFileSync(newSrcPath, destFile)
-  return toRelativePath(destFile)
+  for (const f of nfs.readdirSync(dir)) {
+    const full = npath.join(dir, f)
+    if (full === tmp) continue
+    try { nfs.unlinkSync(full) } catch { /* ok */ }
+  }
+  nfs.renameSync(tmp, destFile)
+  return destFile
 }
 
-// ─── Update an existing icon (dir derived from stored path) ──────────────────
+export function updateScriptFile(existingScriptPath: string, newSrcPath: string): string {
+  const scriptDir = getScriptDirFromRelPath(existingScriptPath)
+  return toRelativePath(replaceFileInDir(npath.join(scriptDir, 'code'), newSrcPath))
+}
 
 export function updateIconFile(existingIconPath: string, newSrcPath: string): string {
-  const srcBase = npath.basename(newSrcPath)
   const scriptDir = getScriptDirFromRelPath(existingIconPath)
-  const iconDir = npath.join(scriptDir, 'icon')
-  ensureDir(iconDir)
-  // Remove old icon files
-  if (nfs.existsSync(iconDir)) {
-    for (const f of nfs.readdirSync(iconDir)) {
-      try { nfs.unlinkSync(npath.join(iconDir, f)) } catch { /* ok */ }
-    }
-  }
-  const destFile = npath.join(iconDir, srcBase)
-  nfs.copyFileSync(newSrcPath, destFile)
-  return toRelativePath(destFile)
+  return toRelativePath(replaceFileInDir(npath.join(scriptDir, 'icon'), newSrcPath))
 }
 
 // ─── Delete a script directory (dir derived from stored path) ────────────────

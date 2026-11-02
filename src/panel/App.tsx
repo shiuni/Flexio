@@ -1,13 +1,15 @@
-import React, { useMemo } from 'react'
+import { useMemo } from 'react'
 import { motion } from 'framer-motion'
 import { useBlueprints } from '@/shared/context/BlueprintsContext'
+import { useT } from '@/shared/i18n/LanguageContext'
 import { getHostApp, getPanelSlot, openSettingsWindow } from '@/shared/lib/cepInterface'
 import { ButtonGrid } from './components/ButtonGrid'
 import { SettingsGear } from './components/SettingsGear'
 import styles from './App.module.css'
 
 export default function App() {
-  const { blueprints, isLoaded } = useBlueprints()
+  const { blueprints, isLoaded, loadError } = useBlueprints()
+  const t = useT()
   const app = getHostApp()
   const slot = getPanelSlot()
 
@@ -44,9 +46,9 @@ export default function App() {
         ) : (
           <div className={styles.empty}>
             <span className={styles.emptyText}>
-              No toolset assigned.
+              {loadError ? t.panelLoadError : t.noToolsetAssigned}
               <br />
-              Open settings to configure.
+              {loadError ? t.openSettingsForDetails : t.openSettingsToConfigure}
             </span>
           </div>
         )}

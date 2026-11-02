@@ -11,6 +11,11 @@ export function getBlueprintsPath(): string {
   return npath.join(getFlexioRoot(), 'flexio-blueprints.json')
 }
 
+/** Per-user preferences that are not part of a preset (e.g. UI language) */
+export function getPreferencesPath(): string {
+  return npath.join(getFlexioRoot(), 'flexio-preferences.json')
+}
+
 export function getScriptsRoot(): string {
   return npath.join(getFlexioRoot(), 'Scripts')
 }

@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useBlueprints } from '@/shared/context/BlueprintsContext'
+import { useT } from '@/shared/i18n/LanguageContext'
 import { ButtonEditForm } from './ButtonEditForm'
 import { nameToHsl, iconPathToUrl } from '@/shared/lib/iconGenerator'
 import { TextIcon } from '@/shared/components/TextIcon'
@@ -24,6 +25,7 @@ interface Props {
 
 export function ButtonRow({ app, toolsetId, button, dragging, dragHandleProps }: Props) {
   const { deleteButton, duplicateButton, setButtonHidden } = useBlueprints()
+  const t = useT()
   const [expanded, setExpanded] = useState(false)
   const [editing, setEditing] = useState(false)
 
@@ -32,7 +34,7 @@ export function ButtonRow({ app, toolsetId, button, dragging, dragHandleProps }:
   const isHidden = button.hidden === true
 
   function handleDelete() {
-    if (window.confirm(`Delete "${button.name}"?`)) {
+    if (window.confirm(t.confirmDeleteButton(button.name))) {
       deleteButton(app, toolsetId, button.id)
     }
   }
@@ -72,7 +74,7 @@ export function ButtonRow({ app, toolsetId, button, dragging, dragHandleProps }:
             e.stopPropagation()
             setButtonHidden(app, toolsetId, button.id, !isHidden)
           }}
-          title={isHidden ? 'Hidden from the panel — click to show' : 'Shown in the panel — click to hide'}
+          title={isHidden ? t.hiddenClickToShow : t.shownClickToHide}
         >
           <img src={isHidden ? eyeOffIcon : eyeIcon} alt="" width={13} height={13} />
         </button>
@@ -113,21 +115,21 @@ export function ButtonRow({ app, toolsetId, button, dragging, dragHandleProps }:
                     onClick={(e) => { e.stopPropagation(); setEditing(true) }}
                   >
                     <img src={editIcon} alt="" width={11} height={11} />
-                    Edit
+                    {t.edit}
                   </button>
                   <button
                     className={styles.actionBtn}
                     onClick={(e) => { e.stopPropagation(); handleDuplicate() }}
                   >
                     <img src={duplicateIcon} alt="" width={11} height={11} />
-                    Duplicate
+                    {t.duplicate}
                   </button>
                   <button
                     className={`${styles.actionBtn} ${styles.danger}`}
                     onClick={(e) => { e.stopPropagation(); handleDelete() }}
                   >
                     <img src={trashIcon} alt="" width={11} height={11} />
-                    Delete
+                    {t.delete}
                   </button>
                 </div>
               </div>

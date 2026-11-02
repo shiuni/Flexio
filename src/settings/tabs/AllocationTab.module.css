@@ -149,7 +149,8 @@
 .fieldLabel {
   font-size: 11px;
   color: var(--text-secondary);
-  width: 48px;
+  min-width: 48px;
+  white-space: nowrap;
   flex-shrink: 0;
 }
 

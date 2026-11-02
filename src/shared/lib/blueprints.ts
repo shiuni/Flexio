@@ -110,50 +110,97 @@ function toAppPanelSettings(
 
 // ─── Load ────────────────────────────────────────────────────────────────────
 
+/** The settings file exists but neither it nor its backup could be read. */
+export class BlueprintsLoadError extends Error {}
+
+function getBackupPath(): string {
+  return getBlueprintsPath().replace(/\.json$/, '.bak.json')
+}
+
+function parseBlueprints(raw: string): BlueprintsData {
+  const parsed = JSON.parse(raw) as Omit<BlueprintsData, 'panelSettings'> & {
+    panelSettings?: AppPanelSettingsMap | PanelSettingsMap
+    // Legacy fields that may be present
+    settings?: { buttonScale?: number; buttonSpacing?: number; flipToReorder?: boolean }
+    panelColumns?: Record<string, Record<string, number>>
+  }
+  if (!parsed || typeof parsed !== 'object') throw new Error('Not a settings object')
+
+  // Ensure all apps exist
+  parsed.apps = parsed.apps ?? ({} as BlueprintsData['apps'])
+  parsed.allocation = parsed.allocation ?? ({} as BlueprintsData['allocation'])
+  for (const app of APP_NAMES) {
+    if (!parsed.apps[app]) parsed.apps[app] = { toolsets: [] }
+    if (!parsed.allocation[app]) parsed.allocation[app] = defaultAllocation()
+  }
+
+  // ── Migrate every historical shape → per-app, per-slot panelSettings ─────
+  // v1.0: one global `settings` object; v1.1–v1.2: keyed by slot only.
+  const legacyBase = normalizePanelSettings({
+    scale:         parsed.settings?.buttonScale,
+    spacing:       parsed.settings?.buttonSpacing,
+    flipToReorder: parsed.settings?.flipToReorder,
+  })
+  const panelSettings = toAppPanelSettings(parsed.panelSettings, legacyBase)
+
+  // Drop legacy fields
+  delete parsed.settings
+  delete parsed.panelColumns
+
+  return { ...parsed, panelSettings } as BlueprintsData
+}
+
+/**
+ * Read the settings file. A missing file means a fresh install and yields the
+ * defaults; an unreadable one falls back to the backup and otherwise throws,
+ * so a broken file is never silently replaced by empty settings.
+ */
 export function loadBlueprints(): BlueprintsData {
   const path = getBlueprintsPath()
+  if (!nfs.existsSync(path)) return getDefaultBlueprints()
   try {
-    if (!nfs.existsSync(path)) return getDefaultBlueprints()
-    const raw = nfs.readFileSync(path, 'utf8')
-    const parsed = JSON.parse(raw) as Omit<BlueprintsData, 'panelSettings'> & {
-      panelSettings?: AppPanelSettingsMap | PanelSettingsMap
-      // Legacy fields that may be present
-      settings?: { buttonScale?: number; buttonSpacing?: number; flipToReorder?: boolean }
-      panelColumns?: Record<string, Record<string, number>>
+    return parseBlueprints(nfs.readFileSync(path, 'utf8'))
+  } catch (e) {
+    const backup = getBackupPath()
+    if (nfs.existsSync(backup)) {
+      try {
+        return parseBlueprints(nfs.readFileSync(backup, 'utf8'))
+      } catch { /* fall through */ }
     }
-
-    // Ensure all apps exist
-    for (const app of APP_NAMES) {
-      if (!parsed.apps[app]) parsed.apps[app] = { toolsets: [] }
-      if (!parsed.allocation[app]) parsed.allocation[app] = defaultAllocation()
-    }
-
-    // ── Migrate every historical shape → per-app, per-slot panelSettings ─────
-    // v1.0: one global `settings` object; v1.1–v1.2: keyed by slot only.
-    const legacyBase = normalizePanelSettings({
-      scale:         parsed.settings?.buttonScale,
-      spacing:       parsed.settings?.buttonSpacing,
-      flipToReorder: parsed.settings?.flipToReorder,
-    })
-    const panelSettings = toAppPanelSettings(parsed.panelSettings, legacyBase)
-
-    // Drop legacy fields
-    delete parsed.settings
-    delete parsed.panelColumns
-
-    return { ...parsed, panelSettings } as BlueprintsData
-  } catch {
-    return getDefaultBlueprints()
+    throw new BlueprintsLoadError(`Could not read ${path}: ${String(e)}`)
   }
 }
 
 // ─── Save ────────────────────────────────────────────────────────────────────
 
+/**
+ * Write through a temp file and rename it into place, so the other panels
+ * polling the file never read a half-written one. The previous version is
+ * kept as a backup as long as it still parses.
+ */
 export function saveBlueprints(data: BlueprintsData): void {
   data.lastModified = new Date().toISOString()
   const path = getBlueprintsPath()
   ensureDir(getFlexioRoot())
-  nfs.writeFileSync(path, JSON.stringify(data, null, 2), 'utf8')
+
+  const tmp = path + '.tmp'
+  nfs.writeFileSync(tmp, JSON.stringify(data, null, 2), 'utf8')
+
+  if (nfs.existsSync(path)) {
+    try {
+      const current = nfs.readFileSync(path, 'utf8')
+      JSON.parse(current)
+      nfs.writeFileSync(getBackupPath(), current, 'utf8')
+    } catch { /* never let a broken file overwrite a good backup */ }
+  }
+
+  try {
+    nfs.renameSync(tmp, path)
+  } catch {
+    // Rename can be refused while another process holds the file; copy instead
+    nfs.copyFileSync(tmp, path)
+    try { nfs.unlinkSync(tmp) } catch { /* ok */ }
+  }
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────

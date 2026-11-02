@@ -1,4 +1,3 @@
-import React from 'react'
 import styles from './AboutTab.module.css'
 
 export function AboutTab() {

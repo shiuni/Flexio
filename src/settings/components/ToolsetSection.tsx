@@ -1,6 +1,7 @@
-import React, { useState, useRef } from 'react'
+import { useState, useRef } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useBlueprints } from '@/shared/context/BlueprintsContext'
+import { useT } from '@/shared/i18n/LanguageContext'
 import { useButtonDrag } from './ButtonDragContext'
 import { ButtonRow } from './ButtonRow'
 import { ButtonEditForm } from './ButtonEditForm'
@@ -53,6 +54,7 @@ function DraggableRow({
 export function ToolsetSection({ app, toolset }: Props) {
   const { renameToolset, deleteToolset } = useBlueprints()
   const drag = useButtonDrag()
+  const t = useT()
   const [expanded, setExpanded] = useState(true)
   const [addingButton, setAddingButton] = useState(false)
   const [editingName, setEditingName] = useState(false)
@@ -68,7 +70,7 @@ export function ToolsetSection({ app, toolset }: Props) {
   }
 
   function handleDeleteToolset() {
-    if (window.confirm(`Delete toolset "${toolset.name}" and all its scripts?`)) {
+    if (window.confirm(t.confirmDeleteToolset(toolset.name))) {
       deleteToolset(app, toolset.id)
     }
   }
@@ -128,16 +130,16 @@ export function ToolsetSection({ app, toolset }: Props) {
               setEditingName(true)
               setNameInput(toolset.name)
             }}
-            title="Rename toolset"
+            title={t.renameToolset}
           >
-            <img src={editIcon} alt="Rename" width={11} height={11} />
+            <img src={editIcon} alt="" width={11} height={11} />
           </button>
           <button
             className={`${styles.iconBtn} ${styles.danger}`}
             onClick={(e) => { e.stopPropagation(); handleDeleteToolset() }}
-            title="Delete toolset"
+            title={t.deleteToolset}
           >
-            <img src={trashIcon} alt="Delete" width={11} height={11} />
+            <img src={trashIcon} alt="" width={11} height={11} />
           </button>
         </div>
       </div>
@@ -157,7 +159,7 @@ export function ToolsetSection({ app, toolset }: Props) {
                 className={styles.empty}
                 onPointerEnter={() => drag.hoverToolset(toolset.id)}
               >
-                No buttons added to {toolset.name}.
+                {t.noButtonsIn(toolset.name)}
               </div>
             )}
 
@@ -200,8 +202,8 @@ export function ToolsetSection({ app, toolset }: Props) {
                 onClick={() => setAddingButton(true)}
                 onPointerEnter={() => drag.hoverToolset(toolset.id)}
               >
-                <img src={addButtonIcon} alt="Add" width={11} height={11} />
-                <span>Add Button in {toolset.name}</span>
+                <img src={addButtonIcon} alt="" width={11} height={11} />
+                <span>{t.addButtonIn(toolset.name)}</span>
               </button>
             )}
           </motion.div>

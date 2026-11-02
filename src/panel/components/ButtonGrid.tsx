@@ -150,6 +150,9 @@ export function ButtonGrid({
 
   // ── Per-card handlers ─────────────────────────────────────────────────────
   function handleMouseDown(id: string, e: React.MouseEvent) {
+    // A drag released over empty space never produced its click — don't let
+    // the click guard swallow this unrelated one instead
+    didDragRef.current = false
     if (!flipToReorder) return
     pendingRef.current = { id, startX: e.clientX, startY: e.clientY }
   }

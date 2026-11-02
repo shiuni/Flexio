@@ -1,129 +1,164 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
+import { AnimatePresence } from 'framer-motion'
 import { useBlueprints } from '@/shared/context/BlueprintsContext'
 import {
   exportFlex,
   importFlex,
-  previewFlex,
+  readPreset,
+  incomingToolsets,
   showSaveDialog,
   showOpenDialog,
   openInExplorer,
   getDefaultPresetPath,
   getDefaultPresetDir,
 } from '@/shared/lib/flexFile'
-import { loadBlueprints, getDefaultBlueprints, saveBlueprints } from '@/shared/lib/blueprints'
-import { ImportConflictDialog } from '../components/ImportConflictDialog'
-import type { ConflictMode, ConflictInfo } from '@/shared/types'
+import type { FlexPreset } from '@/shared/lib/flexFile'
+import { getDefaultBlueprints, saveBlueprints } from '@/shared/lib/blueprints'
+import { getScriptsRoot } from '@/shared/lib/paths'
+import { rmrf } from '@/shared/lib/nodeEnv'
+import { ImportDialog } from '../components/ImportDialog'
+import { useLanguage } from '@/shared/i18n/LanguageContext'
+import { LANGS, LANG_NAMES } from '@/shared/i18n/strings'
+import type { Lang } from '@/shared/i18n/strings'
+import { APP_NAMES } from '@/shared/types'
+import type { ImportPlan } from '@/shared/types'
 import styles from './SettingsTab.module.css'
 import importIcon from '@/shared/assets/svg/import.svg'
 import exportIcon from '@/shared/assets/svg/export.svg'
 import folderIcon from '@/shared/assets/svg/folder.svg'
 
 export function SettingsTab() {
-  const { update } = useBlueprints()
-  const [status,   setStatus]   = useState('')
-  const [conflict, setConflict] = useState<{ path: string; info: ConflictInfo } | null>(null)
+  const { blueprints, loadError, reload } = useBlueprints()
+  const { lang, setLang, t } = useLanguage()
+  const [status,  setStatus]  = useState<{ text: string; error?: boolean } | null>(null)
+  const [pending, setPending] = useState<{ preset: FlexPreset; fileName: string } | null>(null)
 
   async function handleExport() {
     const path = showSaveDialog('Flexio_Presets')
     if (!path) return
     try {
-      setStatus('Exporting…')
+      setStatus({ text: t.exporting })
       await exportFlex(path)
-      setStatus('Exported successfully.')
+      setStatus({ text: t.exported })
       openInExplorer(path.substring(0, path.lastIndexOf('\\')))
     } catch (e) {
-      setStatus(`Export failed: ${String(e)}`)
+      setStatus({ text: t.exportFailed(String(e)), error: true })
     }
   }
 
-  async function handleImport() {
+  function handleImport() {
+    if (loadError) {
+      setStatus({ text: t.importBlocked, error: true })
+      return
+    }
     const path = showOpenDialog()
     if (!path) return
     try {
-      setStatus('Reading preset file…')
-      const info = await previewFlex(path)
-      if (info.overlapping.length > 0) {
-        setConflict({ path, info })
-      } else {
-        await importFlex(path, 'addMissing')
-        update(() => loadBlueprints())
-        setStatus('Imported successfully.')
+      const preset = readPreset(path)
+      if (!APP_NAMES.some((app) => incomingToolsets(preset, app).length > 0)) {
+        setStatus({ text: t.presetEmpty })
+        return
       }
+      setStatus(null)
+      setPending({ preset, fileName: path.split(/[\\/]/).pop() ?? path })
     } catch (e) {
-      setStatus(`Import failed: ${String(e)}`)
+      setStatus({ text: t.importFailed(String(e)), error: true })
     }
   }
 
-  async function handleConflictResolve(mode: ConflictMode) {
-    if (!conflict) return
-    const path = conflict.path
-    setConflict(null)
-    if (mode === 'cancel') { setStatus('Import cancelled.'); return }
+  function handleImportConfirm(plan: ImportPlan) {
+    if (!pending) return
+    const { preset } = pending
+    setPending(null)
     try {
-      setStatus('Importing…')
-      await importFlex(path, mode)
-      update(() => loadBlueprints())
-      setStatus('Imported successfully.')
+      const result = importFlex(preset, plan)
+      reload()
+      setStatus({ text: t.imported(result.toolsets, result.missingFiles) })
     } catch (e) {
-      setStatus(`Import failed: ${String(e)}`)
+      setStatus({ text: t.importFailed(String(e)), error: true })
     }
   }
 
   function handleDeleteAll() {
-    if (!window.confirm('Delete ALL scripts and reset Flexio? This cannot be undone.')) return
-    const fresh = getDefaultBlueprints()
-    saveBlueprints(fresh)
-    update(() => fresh)
-    setStatus('All data deleted.')
+    if (!window.confirm(t.confirmDeleteAll)) return
+    try {
+      // Flexio's own copies only — the files the scripts were picked from stay
+      rmrf(getScriptsRoot())
+      saveBlueprints(getDefaultBlueprints())
+      reload()
+      setStatus({ text: t.allDeleted })
+    } catch (e) {
+      setStatus({ text: t.deleteFailed(String(e)), error: true })
+    }
   }
 
   return (
     <div className={styles.root}>
       <section className={styles.section}>
         <div className={styles.sectionHeader}>
-          <span className={styles.sectionTitle}>Presets</span>
+          <span className={styles.sectionTitle}>{t.language}</span>
+        </div>
+        <select
+          className={styles.langSelect}
+          value={lang}
+          onChange={(e) => setLang(e.target.value as Lang)}
+        >
+          {LANGS.map((l) => (
+            <option key={l} value={l}>{LANG_NAMES[l]}</option>
+          ))}
+        </select>
+      </section>
+
+      <section className={styles.section}>
+        <div className={styles.sectionHeader}>
+          <span className={styles.sectionTitle}>{t.presets}</span>
         </div>
         <div className={styles.presetBtns}>
           <button className={styles.presetBtn} onClick={handleImport}>
             <img src={importIcon} alt="" width={12} height={12} />
-            Import .json
+            {t.importJson}
           </button>
           <button className={styles.presetBtn} onClick={handleExport}>
             <img src={exportIcon} alt="" width={12} height={12} />
-            Export .json
+            {t.exportJson}
           </button>
           <button className={`${styles.presetBtn} ${styles.danger}`} onClick={handleDeleteAll}>
-            Delete All
+            {t.deleteAll}
           </button>
         </div>
 
         <div className={styles.fileLoc}>
-          <span className={styles.fileLocLabel}>Default Preset Location</span>
+          <span className={styles.fileLocLabel}>{t.defaultPresetLocation}</span>
           <div className={styles.fileLocRow}>
             <span className={styles.fileLocPath}>{getDefaultPresetPath()}</span>
             <button
               className={styles.browseBtn}
               onClick={() => openInExplorer(getDefaultPresetDir())}
-              title="Open folder"
+              title={t.openFolder}
             >
-              <img src={folderIcon} alt="Open" width={12} height={12} />
+              <img src={folderIcon} alt="" width={12} height={12} />
             </button>
           </div>
         </div>
 
         {status && (
-          <div className={`${styles.status} ${status.includes('fail') ? styles.statusErr : ''}`}>
-            {status}
+          <div className={`${styles.status} ${status.error ? styles.statusErr : ''}`}>
+            {status.text}
           </div>
         )}
       </section>
 
-      {conflict && (
-        <ImportConflictDialog
-          info={conflict.info}
-          onResolve={handleConflictResolve}
-        />
-      )}
+      <AnimatePresence>
+        {pending && (
+          <ImportDialog
+            preset={pending.preset}
+            fileName={pending.fileName}
+            current={blueprints}
+            onImport={handleImportConfirm}
+            onCancel={() => setPending(null)}
+          />
+        )}
+      </AnimatePresence>
     </div>
   )
 }

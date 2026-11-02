@@ -108,7 +108,13 @@ export function fileToUrl(absPath: string): string {
     const st = nfs.statSync(absPath)
     stamp = `?v=${Math.round(st.mtimeMs)}-${Math.round(st.ctimeMs)}-${st.size}`
   } catch { /* missing file — plain URL */ }
-  return 'file:///' + absPath.replace(/\\/g, '/') + stamp
+  // Encode each segment: a '#' or '%' in a file name would otherwise break the URL
+  const encoded = absPath
+    .replace(/\\/g, '/')
+    .split('/')
+    .map((seg, i) => (i === 0 && /^[A-Za-z]:$/.test(seg) ? seg : encodeURIComponent(seg)))
+    .join('/')
+  return 'file:///' + encoded + stamp
 }
 
 /**

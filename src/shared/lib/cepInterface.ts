@@ -121,6 +121,33 @@ export function onBlueprintsChanged(callback: () => void): () => void {
   return () => cs.removeEventListener(BLUEPRINTS_CHANGED_EVENT, listener)
 }
 
+/** The host application's UI locale, e.g. "ja_JP" ('' outside CEP) */
+export function getHostLocale(): string {
+  return getCS()?.getHostEnvironment().appLocale ?? ''
+}
+
+const LANGUAGE_CHANGED_EVENT = 'com.flexio.languageChanged'
+
+/** Tell the other panels/settings that the UI language was changed */
+export function dispatchLanguageChanged(): void {
+  const cs = getCS()
+  if (!cs) return
+  try {
+    const CSEventClass = (window as unknown as { CSEvent: new (type: string, scope: string) => CSEvent }).CSEvent
+    const event = new CSEventClass(LANGUAGE_CHANGED_EVENT, 'APPLICATION')
+    event.data = ''
+    cs.dispatchEvent(event)
+  } catch { /* the others still pick it up from the preferences file */ }
+}
+
+export function onLanguageChanged(callback: () => void): () => void {
+  const cs = getCS()
+  if (!cs) return () => {}
+  const listener = () => callback()
+  cs.addEventListener(LANGUAGE_CHANGED_EVENT, listener)
+  return () => cs.removeEventListener(LANGUAGE_CHANGED_EVENT, listener)
+}
+
 /**
  * Open the Flexio Settings window.
  *

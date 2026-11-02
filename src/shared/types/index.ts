@@ -99,11 +99,24 @@ export interface BlueprintsData {
   apps: Record<AppName, AppData>
 }
 
-// ─── .flex import conflict resolution ───────────────────────────────────────
-export type ConflictMode = 'replace' | 'updateAdd' | 'addMissing' | 'cancel'
+// ─── Preset import plan ──────────────────────────────────────────────────────
+/**
+ * What to do with one incoming toolset.
+ * 'import'  = add it (under a numbered name when the name is taken — "keep both")
+ * 'replace' = swap the buttons of the existing toolset of the same name
+ * 'skip'    = leave it out
+ */
+export type ImportAction = 'import' | 'replace' | 'skip'
 
-export interface ConflictInfo {
-  existingNames: string[]
-  incomingNames: string[]
-  overlapping: string[]
+/**
+ * Panel choice per slot: '' keeps the current assignment,
+ * 'existing:<id>' picks a toolset already here ('existing:' = unassigned),
+ * 'incoming:<id>' picks a toolset from the preset by its id there.
+ */
+export type ImportSlotChoice = string
+
+export interface ImportPlan {
+  /** app → incoming toolset id → action */
+  toolsets: Record<AppName, Record<string, ImportAction>>
+  allocation: Record<AppName, Record<PanelSlot, ImportSlotChoice>>
 }

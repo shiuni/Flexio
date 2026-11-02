@@ -139,7 +139,7 @@
   height: 20px;
   flex-shrink: 0;
   border-radius: var(--radius-sm);
-  opacity: 0.4;
+  opacity: 0.85;
   transition: opacity var(--transition), background var(--transition);
 }
 
@@ -149,7 +149,7 @@
 }
 
 .eyeBtn.eyeOff {
-  opacity: 0.85;
+  opacity: 0.4;
 }
 
 .eyeBtn img {

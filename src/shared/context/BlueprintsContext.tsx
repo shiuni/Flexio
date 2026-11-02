@@ -38,6 +38,8 @@ import type {
 interface BlueprintsContextValue {
   blueprints: BlueprintsData
   isLoaded: boolean
+  /** Set while the settings file cannot be read; saving is blocked meanwhile */
+  loadError: string | null
 
   // Toolset operations
   addToolset: (app: AppName, name: string) => string
@@ -81,6 +83,8 @@ interface BlueprintsContextValue {
 
   // Raw updater (for advanced use)
   update: (updater: (prev: BlueprintsData) => BlueprintsData) => void
+  /** Re-read the settings file after it was written outside `update` */
+  reload: () => void
 }
 
 const BlueprintsContext = createContext<BlueprintsContextValue | null>(null)
@@ -90,35 +94,44 @@ const BlueprintsContext = createContext<BlueprintsContextValue | null>(null)
 export function BlueprintsProvider({ children }: { children: React.ReactNode }) {
   const [blueprints, setBlueprints] = useState<BlueprintsData>(getDefaultBlueprints)
   const [isLoaded, setIsLoaded] = useState(false)
+  const [loadError, setLoadError] = useState<string | null>(null)
   const lastTimestampRef = useRef<string>('')
+  const loadErrorRef = useRef<string | null>(null)
+  const blueprintsRef = useRef(blueprints)
+  useEffect(() => { blueprintsRef.current = blueprints }, [blueprints])
+
+  /** Load from disk; on failure keep what is on screen and block saving. */
+  const loadFromDisk = useCallback(() => {
+    lastTimestampRef.current = getBlueprintsTimestamp()
+    try {
+      setBlueprints(loadBlueprints())
+      loadErrorRef.current = null
+      setLoadError(null)
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e)
+      loadErrorRef.current = msg
+      setLoadError(msg)
+    }
+  }, [])
 
   useEffect(() => {
-    const data = loadBlueprints()
-    setBlueprints(data)
-    lastTimestampRef.current = getBlueprintsTimestamp()
+    loadFromDisk()
     setIsLoaded(true)
-  }, [])
+  }, [loadFromDisk])
 
   useEffect(() => {
     const interval = setInterval(() => {
       const ts = getBlueprintsTimestamp()
-      if (ts && ts !== lastTimestampRef.current) {
-        lastTimestampRef.current = ts
-        setBlueprints(loadBlueprints())
-      }
+      if (ts && ts !== lastTimestampRef.current) loadFromDisk()
     }, 1000)
     return () => clearInterval(interval)
-  }, [])
+  }, [loadFromDisk])
 
-  useEffect(() => {
-    return onBlueprintsChanged(() => {
-      const ts = getBlueprintsTimestamp()
-      lastTimestampRef.current = ts
-      setBlueprints(loadBlueprints())
-    })
-  }, [])
+  useEffect(() => onBlueprintsChanged(loadFromDisk), [loadFromDisk])
 
   const update = useCallback((updater: (prev: BlueprintsData) => BlueprintsData) => {
+    // Saving on top of settings that failed to load would wipe the file
+    if (loadErrorRef.current) return
     setBlueprints((prev) => {
       const next = updater(prev)
       saveBlueprints(next)
@@ -127,6 +140,11 @@ export function BlueprintsProvider({ children }: { children: React.ReactNode }) 
       return next
     })
   }, [])
+
+  const reload = useCallback(() => {
+    loadFromDisk()
+    dispatchBlueprintsChanged()
+  }, [loadFromDisk])
 
   // ── Toolset operations ──────────────────────────────────────────────────────
 
@@ -205,6 +223,7 @@ export function BlueprintsProvider({ children }: { children: React.ReactNode }) 
       description: string,
       iconLabel = '',
     ) => {
+      if (loadErrorRef.current) return
       const buttonId = uuidv4()
       const { scriptPath, scriptName } = saveScriptFile(app, scriptSrcPath, buttonId)
       let iconPath = ''
@@ -250,22 +269,34 @@ export function BlueprintsProvider({ children }: { children: React.ReactNode }) 
         clearIcon?: boolean
       },
     ) => {
+      if (loadErrorRef.current) return
+      // Copy files first, outside the state updater: a failed copy throws to
+      // the caller instead of breaking the render, and leaves nothing saved.
+      const current = blueprintsRef.current.apps[app].toolsets
+        .find((ts) => ts.id === toolsetId)?.buttons.find((b) => b.id === buttonId)
+      if (!current) return
+      let newScriptPath: string | null = null
+      let newIconPath: string | null = null
+      if (fields.scriptSrcPath) {
+        // Derive dir from existing scriptPath (UUID or legacy name-based)
+        newScriptPath = updateScriptFile(current.scriptPath, fields.scriptSrcPath)
+      }
+      if (!fields.clearIcon && fields.iconSrcPath) {
+        newIconPath = updateIconFile(current.iconPath || current.scriptPath, fields.iconSrcPath)
+      }
+
       update((bp) => {
         const toolsets = bp.apps[app].toolsets.map((ts) => {
           if (ts.id !== toolsetId) return ts
           const buttons = ts.buttons.map((btn) => {
             if (btn.id !== buttonId) return btn
             let { scriptPath, iconPath, iconType, autoIconText } = btn
-            if (fields.scriptSrcPath) {
-              // Derive dir from existing scriptPath (UUID or legacy name-based)
-              scriptPath = updateScriptFile(btn.scriptPath, fields.scriptSrcPath)
-            }
+            if (newScriptPath) scriptPath = newScriptPath
             if (fields.clearIcon) {
               iconPath = ''
               iconType = 'text'
-            } else if (fields.iconSrcPath) {
-              const refPath = btn.iconPath || btn.scriptPath
-              iconPath = updateIconFile(refPath, fields.iconSrcPath)
+            } else if (newIconPath) {
+              iconPath = newIconPath
               iconType = 'image'
             }
             const newName = fields.name ?? btn.name
@@ -454,6 +485,7 @@ export function BlueprintsProvider({ children }: { children: React.ReactNode }) 
       value={{
         blueprints,
         isLoaded,
+        loadError,
         addToolset,
         renameToolset,
         deleteToolset,
@@ -467,6 +499,7 @@ export function BlueprintsProvider({ children }: { children: React.ReactNode }) 
         updatePanelSettings,
         updateAllocation,
         update,
+        reload,
       }}
     >
       {children}

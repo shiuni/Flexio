@@ -1,5 +1,6 @@
 import React, { useRef, useState } from 'react'
 import { useBlueprints } from '@/shared/context/BlueprintsContext'
+import { useT } from '@/shared/i18n/LanguageContext'
 import { resolveIconText } from '@/shared/lib/scriptManager'
 import {
   clampIconText,
@@ -28,6 +29,7 @@ interface Props {
 
 export function ButtonEditForm({ app, toolsetId, button, onDone }: Props) {
   const { addButton, updateButton } = useBlueprints()
+  const t = useT()
   const isEditing = !!button
 
   const [name, setName] = useState(button?.name ?? '')
@@ -64,25 +66,30 @@ export function ButtonEditForm({ app, toolsetId, button, onDone }: Props) {
 
   function handleSave() {
     if (!isEditing && !scriptPath) {
-      setError('Please select a script file.')
+      setError(t.selectScriptFile)
       return
     }
     if (!name.trim()) {
-      setError('Please enter a button name.')
+      setError(t.enterButtonName)
       return
     }
 
-    if (isEditing) {
-      updateButton(app, toolsetId, button!.id, {
-        name: name.trim(),
-        description: description.trim(),
-        iconLabel,
-        scriptSrcPath: scriptPath ?? undefined,
-        iconSrcPath: iconPath,
-        clearIcon,
-      })
-    } else {
-      addButton(app, toolsetId, scriptPath!, iconPath, name.trim(), description.trim(), iconLabel)
+    try {
+      if (isEditing) {
+        updateButton(app, toolsetId, button!.id, {
+          name: name.trim(),
+          description: description.trim(),
+          iconLabel,
+          scriptSrcPath: scriptPath ?? undefined,
+          iconSrcPath: iconPath,
+          clearIcon,
+        })
+      } else {
+        addButton(app, toolsetId, scriptPath!, iconPath, name.trim(), description.trim(), iconLabel)
+      }
+    } catch (e) {
+      setError(t.copyFailed(e instanceof Error ? e.message : String(e)))
+      return
     }
     onDone()
   }
@@ -102,17 +109,17 @@ export function ButtonEditForm({ app, toolsetId, button, onDone }: Props) {
     <div className={styles.form} onClick={(e) => e.stopPropagation()}>
       {/* Script file */}
       <div className={styles.field}>
-        <label className={styles.label}>Script File {!isEditing && <span className={styles.required}>*</span>}</label>
+        <label className={styles.label}>{t.scriptFile} {!isEditing && <span className={styles.required}>*</span>}</label>
         <div className={styles.fileRow}>
           <span className={styles.filePath}>
             {scriptPath
               ? scriptPath.split(/[\\/]/).pop()
               : isEditing
               ? button!.scriptPath.split('/').pop()
-              : 'No file selected'}
+              : t.noFileSelected}
           </span>
           <button className={styles.browseBtn} onClick={() => scriptInputRef.current?.click()}>
-            <img src={folderIcon} alt="Browse" width={12} height={12} />
+            <img src={folderIcon} alt={t.browse} width={12} height={12} />
           </button>
           <input
             ref={scriptInputRef}
@@ -126,27 +133,31 @@ export function ButtonEditForm({ app, toolsetId, button, onDone }: Props) {
 
       {/* Icon file */}
       <div className={styles.field}>
-        <label className={styles.label}>Icon (PNG / JPG / SVG)</label>
+        <label className={styles.label}>{t.iconFile}</label>
         <div className={styles.fileRow}>
           <span className={styles.filePath}>
             {clearIcon
-              ? 'Cleared (text icon)'
+              ? t.iconCleared
               : iconPath
               ? iconPath.split(/[\\/]/).pop()
               : isEditing && button!.iconPath
               ? button!.iconPath.split('/').pop()
-              : 'Use auto text icon'}
+              : t.autoTextIcon}
           </span>
           <button className={styles.browseBtn} onClick={() => iconInputRef.current?.click()}>
-            <img src={folderIcon} alt="Browse" width={12} height={12} />
+            <img src={folderIcon} alt={t.browse} width={12} height={12} />
           </button>
-          {(isEditing && button!.iconPath && !clearIcon) && (
+          {!clearIcon && (iconPath || (isEditing && button!.iconPath)) && (
             <button
               className={styles.clearBtn}
-              title="Clear icon"
-              onClick={() => { setClearIcon(true); setIconPath(null) }}
+              title={t.clearIcon}
+              onClick={() => {
+                setIconPath(null)
+                // Only a saved icon needs clearing; a just-picked one is simply dropped
+                if (isEditing && button!.iconPath) setClearIcon(true)
+              }}
             >
-              <img src={crossIcon} alt="Clear" width={10} height={10} />
+              <img src={crossIcon} alt="" width={10} height={10} />
             </button>
           )}
           <input
@@ -161,18 +172,18 @@ export function ButtonEditForm({ app, toolsetId, button, onDone }: Props) {
 
       {/* Name */}
       <div className={styles.field}>
-        <label className={styles.label}>Name <span className={styles.required}>*</span></label>
+        <label className={styles.label}>{t.name} <span className={styles.required}>*</span></label>
         <input
           value={name}
           onChange={(e) => setName(e.target.value)}
-          placeholder="Button name"
+          placeholder={t.buttonNamePlaceholder}
           maxLength={64}
         />
       </div>
 
       {/* Icon name + preview */}
       <div className={styles.field}>
-        <label className={styles.label}>Icon Name</label>
+        <label className={styles.label}>{t.iconName}</label>
         <div className={styles.iconNameRow}>
           <div className={styles.iconNameInput}>
             <textarea
@@ -183,7 +194,7 @@ export function ButtonEditForm({ app, toolsetId, button, onDone }: Props) {
               style={{ resize: 'none', width: '100%' }}
             />
             <span className={styles.hint}>
-              Up to {ICON_TEXT_MAX_ROWS} lines / {ICON_TEXT_MAX_CHARS} chars. Empty uses the Name.
+              {t.iconNameHint(ICON_TEXT_MAX_ROWS, ICON_TEXT_MAX_CHARS)}
             </span>
           </div>
           <div className={styles.previewArea}>
@@ -202,7 +213,7 @@ export function ButtonEditForm({ app, toolsetId, button, onDone }: Props) {
               )}
             </div>
             <span className={styles.hint}>
-              {previewImageUrl ? 'Image icon in use' : 'Preview'}
+              {previewImageUrl ? t.imageIconInUse : t.preview}
             </span>
           </div>
         </div>
@@ -210,11 +221,11 @@ export function ButtonEditForm({ app, toolsetId, button, onDone }: Props) {
 
       {/* Description */}
       <div className={styles.field}>
-        <label className={styles.label}>Description</label>
+        <label className={styles.label}>{t.description}</label>
         <textarea
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-          placeholder="Brief description shown on hover"
+          placeholder={t.descriptionPlaceholder}
           rows={2}
           style={{ resize: 'none', width: '100%' }}
         />
@@ -223,9 +234,9 @@ export function ButtonEditForm({ app, toolsetId, button, onDone }: Props) {
       {error && <div className={styles.error}>{error}</div>}
 
       <div className={styles.footer}>
-        <button className={styles.cancelBtn} onClick={onDone}>Cancel</button>
+        <button className={styles.cancelBtn} onClick={onDone}>{t.cancel}</button>
         <button className={styles.saveBtn} onClick={handleSave}>
-          {isEditing ? 'Update' : 'Add Button'}
+          {isEditing ? t.update : t.addButton}
         </button>
       </div>
     </div>

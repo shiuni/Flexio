@@ -1,5 +1,5 @@
-import React from 'react'
 import { motion } from 'framer-motion'
+import { useT } from '@/shared/i18n/LanguageContext'
 import styles from './SettingsGear.module.css'
 import settingIcon from '@/shared/assets/svg/setting.svg'
 
@@ -8,6 +8,7 @@ interface Props {
 }
 
 export function SettingsGear({ onClick }: Props) {
+  const t = useT()
   return (
     <motion.button
       className={styles.gear}
@@ -15,9 +16,9 @@ export function SettingsGear({ onClick }: Props) {
       whileHover={{ rotate: 45, scale: 1.15 }}
       whileTap={{ scale: 0.9 }}
       transition={{ duration: 0.2, ease: 'easeInOut' }}
-      title="Flexio Settings"
+      title={t.flexioSettings}
     >
-      <img src={settingIcon} alt="Settings" width={14} height={14} />
+      <img src={settingIcon} alt="" width={14} height={14} />
     </motion.button>
   )
 }

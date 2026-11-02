@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { nameToHsl, iconPathToUrl } from '@/shared/lib/iconGenerator'
 import { TextIcon } from '@/shared/components/TextIcon'

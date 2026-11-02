@@ -1,8 +1,9 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { AnimatePresence, LayoutGroup, motion } from 'framer-motion'
 import { useBlueprints } from '@/shared/context/BlueprintsContext'
+import { useT } from '@/shared/i18n/LanguageContext'
 import { APP_NAMES, APP_DISPLAY_NAMES } from '@/shared/types'
-import type { AppName, ToolsetDef } from '@/shared/types'
+import type { AppName } from '@/shared/types'
 import { ToolsetSection } from '../components/ToolsetSection'
 import { ButtonDragProvider } from '../components/ButtonDragContext'
 import styles from './ButtonsTab.module.css'
@@ -27,6 +28,7 @@ interface Props {
 
 export function ButtonsTab({ initialApp }: Props) {
   const { blueprints, addToolset } = useBlueprints()
+  const t = useT()
   const [expandedApps, setExpandedApps] = useState<Set<AppName>>(new Set([initialApp]))
 
   // Put the current app first in the list
@@ -45,7 +47,7 @@ export function ButtonsTab({ initialApp }: Props) {
   }
 
   function handleAddToolset(app: AppName) {
-    const name = `Toolset ${blueprints.apps[app].toolsets.length + 1}`
+    const name = t.defaultToolsetName(blueprints.apps[app].toolsets.length + 1)
     addToolset(app, name)
     setExpandedApps((prev) => new Set([...prev, app]))
   }
@@ -78,10 +80,10 @@ export function ButtonsTab({ initialApp }: Props) {
                   handleAddToolset(app)
                   setExpandedApps((prev) => new Set([...prev, app]))
                 }}
-                title="Add Toolset"
+                title={t.addToolset}
               >
-                <img src={addToolsetIcon} alt="Add Toolset" width={12} height={12} />
-                <span>Add Toolset</span>
+                <img src={addToolsetIcon} alt="" width={12} height={12} />
+                <span>{t.addToolset}</span>
               </button>
             </div>
 
@@ -96,7 +98,7 @@ export function ButtonsTab({ initialApp }: Props) {
                   style={{ overflow: 'hidden' }}
                 >
                   {toolsets.length === 0 ? (
-                    <div className={styles.noToolsets}>No toolsets yet.</div>
+                    <div className={styles.noToolsets}>{t.noToolsets}</div>
                   ) : (
                     /* One drag context per app: rows travel between this app's
                        toolsets, never into another app's. */

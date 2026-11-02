@@ -1,4 +1,3 @@
-import React from 'react'
 import { fitIconFontSize, getIconRows } from '../lib/iconGenerator'
 import styles from './TextIcon.module.css'
 

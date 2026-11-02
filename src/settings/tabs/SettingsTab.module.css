@@ -163,6 +163,14 @@
   transform: translateX(14px);
 }
 
+/* ── Language ─────────────────────────────────────────────────────────────── */
+.langSelect {
+  width: 160px;
+  font-size: 11px;
+  padding: 3px 6px;
+  border-radius: var(--radius-sm);
+}
+
 /* ── Presets ────────────────────────────────────────────────────────────────── */
 .presetBtns {
   display: flex;

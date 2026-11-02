@@ -1,9 +1,11 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useBlueprints } from '@/shared/context/BlueprintsContext'
 import { ButtonsTab } from './tabs/ButtonsTab'
 import { AllocationTab } from './tabs/AllocationTab'
 import { SettingsTab } from './tabs/SettingsTab'
+import { useT } from '@/shared/i18n/LanguageContext'
+import type { TextKey } from '@/shared/i18n/strings'
 import { getHostApp, isCEP } from '@/shared/lib/cepInterface'
 import type { AppName } from '@/shared/types'
 import styles from './App.module.css'
@@ -26,21 +28,22 @@ function getInitialApp(): AppName {
   return 'AfterEffects'
 }
 
-const TAB_LABELS: Record<Tab, string> = {
-  buttons:    'Buttons',
-  allocation: 'Allocation',
-  settings:   'Settings',
-}
+const TAB_LABELS = {
+  buttons:    'tabButtons',
+  allocation: 'tabAllocation',
+  settings:   'tabSettings',
+} as const satisfies Record<Tab, TextKey>
 
 export default function App() {
-  const { isLoaded } = useBlueprints()
+  const { isLoaded, loadError } = useBlueprints()
+  const t = useT()
   const [tab, setTab] = useState<Tab>('buttons')
   const [initialApp]  = useState<AppName>(getInitialApp)
 
   if (!isLoaded) {
     return (
       <div className={styles.loading}>
-        <span>Loading…</span>
+        <span>{t.loading}</span>
       </div>
     )
   }
@@ -50,13 +53,13 @@ export default function App() {
       {/* Sidebar */}
       <nav className={styles.sidebar}>
         <div className={styles.navItems}>
-          {(['buttons', 'allocation', 'settings'] as Tab[]).map((t) => (
+          {(['buttons', 'allocation', 'settings'] as Tab[]).map((id) => (
             <button
-              key={t}
-              className={`${styles.navItem} ${tab === t ? styles.active : ''}`}
-              onClick={() => setTab(t)}
+              key={id}
+              className={`${styles.navItem} ${tab === id ? styles.active : ''}`}
+              onClick={() => setTab(id)}
             >
-              {TAB_LABELS[t]}
+              {t[TAB_LABELS[id]]}
             </button>
           ))}
         </div>
@@ -65,6 +68,12 @@ export default function App() {
 
       {/* Main content */}
       <div className={styles.main}>
+        {loadError && (
+          <div className={styles.loadError}>
+            {t.settingsLoadError}
+            <span className={styles.loadErrorDetail}>{loadError}</span>
+          </div>
+        )}
         <AnimatePresence mode="wait">
           <motion.div
             key={tab}
