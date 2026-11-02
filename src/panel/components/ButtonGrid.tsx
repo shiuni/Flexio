@@ -14,6 +14,23 @@ import styles from './ButtonGrid.module.css'
 const DRAG_THRESHOLD = 6
 const FLIP_DURATION  = 180
 
+/** Horizontal padding of the panel content (App.module.css .content) */
+const CONTENT_PADDING_X = 16
+/** AUTO turns a panel this many times taller than wide into a single column… */
+const STRIP_ASPECT = 2
+/** …as long as no more than this many buttons would fit across it */
+const STRIP_MAX_FIT = 3
+
+function usePanelSize() {
+  const [size, setSize] = useState(() => ({ w: window.innerWidth, h: window.innerHeight }))
+  useEffect(() => {
+    const onResize = () => setSize({ w: window.innerWidth, h: window.innerHeight })
+    window.addEventListener('resize', onResize)
+    return () => window.removeEventListener('resize', onResize)
+  }, [])
+  return size
+}
+
 interface Props {
   buttons: ButtonDef[]
   app: AppName
@@ -30,6 +47,7 @@ export function ButtonGrid({
   buttons, app, toolsetId, scale, spacing, flipToReorder, uiMode, iconShape, columns,
 }: Props) {
   const { reorderButtons } = useBlueprints()
+  const panel = usePanelSize()
 
   // Buttons flagged hidden stay in the toolset but never reach the panel
   const baseSorted = useMemo(
@@ -204,8 +222,13 @@ export function ButtonGrid({
 
   // ── Grid layout (icon mode) ───────────────────────────────────────────────
   if (uiMode === 'icon') {
-    const gridStyle: React.CSSProperties = columns > 0
-      ? { gap: spacing, display: 'grid', gridTemplateColumns: `repeat(${columns}, ${scale}px)` }
+    // AUTO wraps to fill the width. The host won't let a panel get narrow enough
+    // for that to reach one column, so a tall, narrow panel is made a strip.
+    const fitAcross = Math.floor((panel.w - CONTENT_PADDING_X + spacing) / (scale + spacing))
+    const isStrip = panel.h >= panel.w * STRIP_ASPECT && fitAcross <= STRIP_MAX_FIT
+    const fixedColumns = columns > 0 ? columns : isStrip ? 1 : 0
+    const gridStyle: React.CSSProperties = fixedColumns > 0
+      ? { gap: spacing, display: 'grid', gridTemplateColumns: `repeat(${fixedColumns}, ${scale}px)` }
       : { gap: spacing }
 
     return (
