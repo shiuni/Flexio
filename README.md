@@ -2,7 +2,8 @@
 
 A script launcher panel for After Effects, Premiere Pro, Photoshop and Illustrator.
 
-<img width="672" height="410" alt="Flexio" src="https://github.com/user-attachments/assets/37971cf9-0546-49d0-b0e1-233a7699f1c0" />
+<img width="1663" height="566" alt="image" src="https://github.com/user-attachments/assets/c82f3ecd-6549-4a6b-bc59-b681da8498c0" />
+
 
 After Effects has KBar; the rest of the Adobe suite has nothing comparable, so a script you wrote for Photoshop or Illustrator stays buried in a menu. Flexio is one launcher that runs natively on all four hosts and knows which one it is in.
 
