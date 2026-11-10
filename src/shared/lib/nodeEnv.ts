@@ -17,6 +17,8 @@ function safeRequire<T>(moduleName: string): T | null {
 export const nfs = safeRequire<typeof import('fs')>('fs')!
 export const npath = safeRequire<typeof import('path')>('path')!
 export const nos = safeRequire<typeof import('os')>('os')!
+export const nchild = safeRequire<typeof import('child_process')>('child_process')
+export const nprocess = safeRequire<typeof import('process')>('process')
 
 /** Whether we are running inside CEP with Node.js available */
 export const isNodeAvailable = nfs !== null && npath !== null

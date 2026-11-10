@@ -1,5 +1,5 @@
 .gear {
-  position: fixed;
+  position: absolute; /* against the panel root, which follows the visible width */
   bottom: 6px;
   right: 8px;
   width: 22px;
