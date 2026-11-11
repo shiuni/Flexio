@@ -48,15 +48,15 @@ export default function App() {
             iconShape={iconShape}
             columns={columns}
           />
-        ) : loadError ? (
+        ) : (
           <div className={styles.empty}>
             <span className={styles.emptyText}>
-              {t.panelLoadError}
+              {loadError ? t.panelLoadError : t.noToolsetAssigned}
               <br />
-              {t.openSettingsForDetails}
+              {loadError ? t.openSettingsForDetails : t.assignInSettings}
             </span>
           </div>
-        ) : null /* no toolset assigned: stay blank, the gear is the way in */}
+        )}
       </motion.div>
 
       <SettingsGear onClick={() => openSettingsWindow(app, slot)} />

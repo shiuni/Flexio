@@ -225,7 +225,6 @@ export function ButtonEditForm({ app, toolsetId, button, onDone }: Props) {
         <textarea
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-          placeholder={t.descriptionPlaceholder}
           rows={2}
           style={{ resize: 'none', width: '100%' }}
         />

@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useBlueprints } from '@/shared/context/BlueprintsContext'
 import { useT } from '@/shared/i18n/LanguageContext'
+import { useConfirm } from './ConfirmDialog'
 import { ButtonEditForm } from './ButtonEditForm'
 import { nameToHsl, iconPathToUrl } from '@/shared/lib/iconGenerator'
 import { TextIcon } from '@/shared/components/TextIcon'
@@ -26,6 +27,7 @@ interface Props {
 export function ButtonRow({ app, toolsetId, button, dragging, dragHandleProps }: Props) {
   const { deleteButton, duplicateButton, setButtonHidden } = useBlueprints()
   const t = useT()
+  const confirm = useConfirm()
   const [expanded, setExpanded] = useState(false)
   const [editing, setEditing] = useState(false)
 
@@ -33,8 +35,8 @@ export function ButtonRow({ app, toolsetId, button, dragging, dragHandleProps }:
   const bgColor = nameToHsl(button.name)
   const isHidden = button.hidden === true
 
-  function handleDelete() {
-    if (window.confirm(t.confirmDeleteButton(button.name))) {
+  async function handleDelete() {
+    if (await confirm(t.confirmDeleteButton(button.name))) {
       deleteButton(app, toolsetId, button.id)
     }
   }

@@ -1,0 +1,63 @@
+/* No blur and no entrance animation: the dialog has to appear on the same frame */
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+}
+
+.dialog {
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  width: min(340px, calc(100vw - 32px));
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.6);
+}
+
+.message {
+  padding: 20px 20px 16px;
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--text);
+  overflow-wrap: anywhere;
+}
+
+.footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+  padding: 0 20px 16px;
+}
+
+.cancelBtn {
+  padding: 4px 12px;
+  font-size: 11px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  transition: color var(--transition), background var(--transition);
+}
+
+.cancelBtn:hover {
+  color: var(--text);
+  background: var(--surface-hover);
+}
+
+.confirmBtn {
+  padding: 4px 14px;
+  font-size: 11px;
+  font-weight: 600;
+  border: 1px solid var(--danger);
+  border-radius: var(--radius-sm);
+  background: var(--danger);
+  color: #fff;
+  transition: background var(--transition), border-color var(--transition);
+}
+
+.confirmBtn:hover {
+  background: var(--danger-hover);
+  border-color: var(--danger-hover);
+}

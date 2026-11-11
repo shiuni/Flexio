@@ -27,6 +27,8 @@ const en = {
   unassignedOption: '— Unassigned —',
 
   // Panel
+  noToolsetAssigned: 'No toolset assigned.',
+  assignInSettings: 'Assign one in Settings > Allocation.',
   panelLoadError: 'Flexio settings could not be read.',
   openSettingsForDetails: 'Open settings for details.',
   addScriptButton: 'Add script button',
@@ -71,7 +73,6 @@ const en = {
   imageIconInUse: 'Image icon in use',
   preview: 'Preview',
   description: 'Description',
-  descriptionPlaceholder: 'Brief description shown on hover',
   update: 'Update',
 
   // Allocation tab
@@ -143,6 +144,8 @@ const ja: Strings = {
   unassignedOption: '— 未割り当て —',
 
   // Panel
+  noToolsetAssigned: 'ツールセットが割り当てられていません',
+  assignInSettings: '設定 > 割り当て から選んでください',
   panelLoadError: '設定を読み込めません',
   openSettingsForDetails: '詳細は設定を開いて確認',
   addScriptButton: 'ボタンを追加',
@@ -158,14 +161,14 @@ const ja: Strings = {
     'ファイルを修正・削除するか、設定の「すべて削除」で初期化してください。',
 
   // Buttons tab
-  addToolset: 'ツールセットを追加',
-  noToolsets: 'ツールセットなし',
+  addToolset: '新規ツールセット',
+  noToolsets: 'ツールセットがありません',
   defaultToolsetName: (n) => `ツールセット ${n}`,
   renameToolset: '名前を変更',
   deleteToolset: 'ツールセットを削除',
   confirmDeleteToolset: (name) => `ツールセット「${name}」とすべてのスクリプトを削除しますか？`,
-  noButtonsIn: (name) => `${name}にボタンなし`,
-  addButtonIn: (name) => `${name}にボタンを追加`,
+  noButtonsIn: (name) => `${name}にボタンがありません`,
+  addButtonIn: () => '新規ボタン',
   confirmDeleteButton: (name) => `「${name}」を削除しますか？`,
   hiddenClickToShow: '非表示（クリックで表示）',
   shownClickToHide: '表示中（クリックで非表示）',
@@ -187,7 +190,6 @@ const ja: Strings = {
   imageIconInUse: '画像アイコン使用中',
   preview: 'プレビュー',
   description: '説明',
-  descriptionPlaceholder: 'ホバー時に表示',
   update: '更新',
 
   // Allocation tab

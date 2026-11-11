@@ -17,6 +17,7 @@ import { getDefaultBlueprints, saveBlueprints } from '@/shared/lib/blueprints'
 import { getScriptsRoot } from '@/shared/lib/paths'
 import { rmrf } from '@/shared/lib/nodeEnv'
 import { ImportDialog } from '../components/ImportDialog'
+import { useConfirm } from '../components/ConfirmDialog'
 import { useLanguage } from '@/shared/i18n/LanguageContext'
 import { LANGS, LANG_NAMES } from '@/shared/i18n/strings'
 import type { Lang } from '@/shared/i18n/strings'
@@ -28,6 +29,7 @@ import exportIcon from '@/shared/assets/svg/export.svg'
 import folderIcon from '@/shared/assets/svg/folder.svg'
 
 export function SettingsTab() {
+  const confirm = useConfirm()
   const { blueprints, loadError, reload } = useBlueprints()
   const { lang, setLang, t } = useLanguage()
   const [status,  setStatus]  = useState<{ text: string; error?: boolean } | null>(null)
@@ -79,8 +81,8 @@ export function SettingsTab() {
     }
   }
 
-  function handleDeleteAll() {
-    if (!window.confirm(t.confirmDeleteAll)) return
+  async function handleDeleteAll() {
+    if (!(await confirm(t.confirmDeleteAll, t.deleteAll))) return
     try {
       // Flexio's own copies only — the files the scripts were picked from stay
       rmrf(getScriptsRoot())

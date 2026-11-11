@@ -2,6 +2,7 @@ import { useState, useRef } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useBlueprints } from '@/shared/context/BlueprintsContext'
 import { useT } from '@/shared/i18n/LanguageContext'
+import { useConfirm } from './ConfirmDialog'
 import { useButtonDrag } from './ButtonDragContext'
 import { ButtonRow } from './ButtonRow'
 import { ButtonEditForm } from './ButtonEditForm'
@@ -55,6 +56,7 @@ export function ToolsetSection({ app, toolset }: Props) {
   const { renameToolset, deleteToolset } = useBlueprints()
   const drag = useButtonDrag()
   const t = useT()
+  const confirm = useConfirm()
   const [expanded, setExpanded] = useState(true)
   const [addingButton, setAddingButton] = useState(false)
   const [editingName, setEditingName] = useState(false)
@@ -69,8 +71,8 @@ export function ToolsetSection({ app, toolset }: Props) {
     setEditingName(false)
   }
 
-  function handleDeleteToolset() {
-    if (window.confirm(t.confirmDeleteToolset(toolset.name))) {
+  async function handleDeleteToolset() {
+    if (await confirm(t.confirmDeleteToolset(toolset.name))) {
       deleteToolset(app, toolset.id)
     }
   }
