@@ -27,8 +27,6 @@ const en = {
   unassignedOption: '— Unassigned —',
 
   // Panel
-  noToolsetAssigned: 'No toolset assigned.',
-  openSettingsToConfigure: 'Open settings to configure.',
   panelLoadError: 'Flexio settings could not be read.',
   openSettingsForDetails: 'Open settings for details.',
   addScriptButton: 'Add script button',
@@ -145,8 +143,6 @@ const ja: Strings = {
   unassignedOption: '— 未割り当て —',
 
   // Panel
-  noToolsetAssigned: 'ツールセット未割り当て',
-  openSettingsToConfigure: '設定から割り当て',
   panelLoadError: '設定を読み込めません',
   openSettingsForDetails: '詳細は設定を開いて確認',
   addScriptButton: 'ボタンを追加',
